@@ -6,26 +6,31 @@ fn main() {
     let input = get_input();
     let split = input.split("\n");
     let scores: HashMap<char, usize> = HashMap::from([
-        (')', 3),
-        (']', 57),
-        ('}', 1197),
-        ('>', 25137),
+        (')', 1),
+        (']', 2),
+        ('}', 3),
+        ('>', 4),
     ]);
 
-    let mut total: usize = 0;
+    let mut line_points: Vec<usize> = Vec::new();
     for s in split {
-        let c = find_incorrect(s);
-        if let Some(illegal) = c {
-            println!("{} : {}", illegal, s);
-            total = total + scores.get(&illegal).unwrap();
-        } else {
-            println!("ok : {}", s);
+        let result = find_incomplete(s);
+        if let Some(mut compeletion) = result {
+            let mut points: usize = 0;
+            let mut ss = String::new();
+            for c in compeletion {
+                points = points * 5 + scores.get(&c).unwrap();
+                ss.push(c);
+            }
+            println!("{} : {}", points, ss);
+            line_points.push(points)
         }
     }
-    println!("total : {}", total);
+    line_points.sort();
+    println!("Middle: {}", line_points.get(line_points.len()/2).unwrap());
 }
 
-fn find_incorrect(line: &str) -> Option<char> {
+fn find_incomplete(line: &str) -> Option<Vec<char>> {
     let delimiters = HashMap::from([
         ('{', '}'),
         ('[', ']'),
@@ -40,11 +45,12 @@ fn find_incorrect(line: &str) -> Option<char> {
             // closing char
             let e = expected.pop();
             if e != Some(c) {
-                return Some(c);
+                return None;
             }
         }
     }
-    return None;
+    expected.reverse();
+    return Some(expected);
 }
 
 fn xget_input() -> &'static str {
