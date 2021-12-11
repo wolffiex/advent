@@ -18,14 +18,20 @@ fn main() {
 
     let split = get_input().split("\n");
     let mut grid: Grid = split.into_iter().map(convert_line).collect();
+    let size = grid.len() * grid[0].len();
     // print_grid(&grid);
     let mut total = 0;
-    for s in 1..=100 {
+    let mut step_count = 0;
+    loop {
         let (next, flashes) = step(&grid);
+        step_count = step_count + 1;
         total = total + flashes.len();
         grid = next;
-        // println!("step {}: {}", s, flashes.len());
-        print_grid(&grid);
+        if flashes.len() == size {
+            println!("step {}: {}", step_count, flashes.len());
+            print_grid(&grid);
+            break;
+        }
     }
     println!("pp : {}", total);
 }
