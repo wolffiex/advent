@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 fn main() {
-    part1().unwrap();
+    part2().unwrap();
 }
 
 #[derive(Clone, PartialEq, Eq, Hash, Copy)]
@@ -11,7 +11,7 @@ struct Pair(char, char);
 
 fn part1() -> Option<()> {
     let (mut sequence, rule_map) = process_input(get_input())?;
-    for s in 0..40 {
+    for s in 0..10 {
         sequence = step(sequence, &rule_map);
         println!("Step {}:{}", s, sequence.len());
     }
@@ -22,6 +22,43 @@ fn part1() -> Option<()> {
     println!("{}:{}", min_k, min_v);
     println!("result:{}", max_v - min_v);
     return Some(());
+}
+
+fn part2() -> Option<()> {
+    let (initial, rule_map) = process_input(get_input())?;
+    let mut last_char = None;
+    let freqs: Vec<HashMap<char, usize>> = initial.chars().filter_map(
+        |c| -> Option<HashMap<char, usize>> {
+            let old_last = last_char;
+            last_char = Some(c);
+            match old_last {
+                None => None,
+                Some(last) => {
+                    let mut sequence = format!("{}{}", last, c);
+                    for s in 0..40 {
+                        println!("Step {}:{}", s, sequence.len());
+                        sequence = step(sequence, &rule_map);
+                        if sequence.len()> 20 {
+                            sequence = String::from(&sequence[0..20]);
+                        }
+                    }
+                    Some(count_chars(&sequence[1..]))
+                }
+            }
+        }).collect();
+    let mut counts: HashMap<char, usize> = HashMap::new();
+    for map in freqs {
+        for (c, n) in map {
+            *counts.entry(c).or_insert(n) += n;
+        }
+    }
+
+    let (max_k, max_v) = counts.iter().max_by_key(|&(_, v)| v)?;
+    let (min_k, min_v) = counts.iter().min_by_key(|&(_, v)| v)?;
+    println!("{}:{}", max_k, max_v);
+    println!("{}:{}", min_k, min_v);
+    println!("result:{}", max_v - min_v);
+    Some(())
 }
 
 fn count_chars(sequence: &str) -> HashMap<char, usize> {
