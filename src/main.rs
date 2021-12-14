@@ -9,7 +9,7 @@ use regex::{Captures, Match, Regex};
 struct Point(usize, usize);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Copy)]
-enum Axis { x, y }
+enum Axis { X, Y }
 
 fn main() {
     let point_regex: Regex = Regex::new("([0-9]+),([0-9]+)\n").unwrap();
@@ -22,7 +22,7 @@ fn main() {
     println!("HO: {:?}", points);
     println!("HOl: {:?}", points.len());
 
-    //fold along x=655
+    //fold along X=655
     for fold in get_folds() {
         let (axis, val) = fold;
         points = points.into_iter().map(|p| {
@@ -47,39 +47,39 @@ fn main() {
 
 fn get_folds() -> Vec<(Axis, usize)> {
     return vec! {
-        (Axis::x, 655),
-        (Axis::y, 447),
-        (Axis::x, 327),
-        (Axis::y, 223),
-        (Axis::x, 163),
-        (Axis::y, 111),
-        (Axis::x, 81),
-        (Axis::y, 55),
-        (Axis::x, 40),
-        (Axis::y, 27),
-        (Axis::y, 13),
-        (Axis::y, 6)
+        (Axis::X, 655),
+        (Axis::Y, 447),
+        (Axis::X, 327),
+        (Axis::Y, 223),
+        (Axis::X, 163),
+        (Axis::Y, 111),
+        (Axis::X, 81),
+        (Axis::Y, 55),
+        (Axis::X, 40),
+        (Axis::Y, 27),
+        (Axis::Y, 13),
+        (Axis::Y, 6)
     };
 }
 
 
 fn get_from_point(p: Point, axis: Axis) -> usize {
     match axis {
-        Axis::x => { p.0 }
-        Axis::y => { p.1 }
+        Axis::X => { p.0 }
+        Axis::Y => { p.1 }
     }
 }
 
 fn fold_point(p: Point, axis: Axis, val: usize) -> Point {
     let pv = match axis {
-        Axis::x => { p.0 }
-        Axis::y => { p.1 }
+        Axis::X => { p.0 }
+        Axis::Y => { p.1 }
     };
     if pv <= val { p } else {
         let nv = pv - (pv - val) * 2;
         match axis {
-            Axis::x => { Point(nv, p.1) }
-            Axis::y => { Point(p.0, nv) }
+            Axis::X => { Point(nv, p.1) }
+            Axis::Y => { Point(p.0, nv) }
         }
     }
 }
@@ -956,18 +956,18 @@ fn get_input() -> &'static str {
 947,549
 1029,99
 
-fold along x=655
-fold along y=447
-fold along x=327
-fold along y=223
-fold along x=163
-fold along y=111
-fold along x=81
-fold along y=55
-fold along x=40
-fold along y=27
-fold along y=13
-fold along y=6";
+fold along X=655
+fold along Y=447
+fold along X=327
+fold along Y=223
+fold along X=163
+fold along Y=111
+fold along X=81
+fold along Y=55
+fold along X=40
+fold along Y=27
+fold along Y=13
+fold along Y=6";
 }
 
 fn xget_input() -> &'static str {
@@ -990,6 +990,6 @@ fn xget_input() -> &'static str {
 8,10
 9,0
 
-fold along y=7
-fold along x=5";
+fold along Y=7
+fold along X=5";
 }
