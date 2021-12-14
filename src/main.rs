@@ -2,14 +2,18 @@
 extern crate regex;
 
 use std::collections::HashSet;
+use std::fmt::Write;
 use regex::{Captures, Match, Regex};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Copy)]
 struct Point(usize, usize);
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Copy)]
+enum Axis { x, y }
+
 fn main() {
     let point_regex: Regex = Regex::new("([0-9]+),([0-9]+)\n").unwrap();
-    let points: HashSet<Point> = point_regex
+    let mut points: HashSet<Point> = point_regex
         .captures_iter(get_input())
         .filter_map(|cap: Captures| -> Option<Point> {
             Some(Point(convert_match(cap.get(1))?,
@@ -19,14 +23,46 @@ fn main() {
     println!("HOl: {:?}", points.len());
 
     //fold along x=655
-    let folded: HashSet<Point> = points.into_iter().map(|p| {
-        fold_point(p, Axis::x, 655)
-    }).collect();
-    println!("dr: {:?}", folded);
-    println!("l: {:?}", folded.len());
+    for fold in get_folds() {
+        let (axis, val) = fold;
+        points = points.into_iter().map(|p| {
+            fold_point(p, axis, val)
+        }).collect();
+    }
+    println!("dr: {:?}", points);
+    println!("l: {:?}", points.len());
+
+    println!(" ");
+    println!(" ");
+
+    for y in 0..6 {
+        let mut s = String::new();
+        for x in 0..40 {
+            let c = if points.contains(&Point(x, y)) { '#' } else { '.' };
+            s.write_char(c);
+        }
+        println!("{}", s);
+    }
 }
 
-enum Axis { x, y }
+fn get_folds() -> Vec<(Axis, usize)> {
+    return vec! {
+        (Axis::x, 655),
+        (Axis::y, 447),
+        (Axis::x, 327),
+        (Axis::y, 223),
+        (Axis::x, 163),
+        (Axis::y, 111),
+        (Axis::x, 81),
+        (Axis::y, 55),
+        (Axis::x, 40),
+        (Axis::y, 27),
+        (Axis::y, 13),
+        (Axis::y, 6)
+    };
+}
+
+
 fn get_from_point(p: Point, axis: Axis) -> usize {
     match axis {
         Axis::x => { p.0 }
