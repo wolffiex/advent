@@ -19,14 +19,35 @@ fn main() {
     println!("HOl: {:?}", points.len());
 
     //fold along x=655
-    let folded: HashSet<Point> = points.into_iter().map(|p| -> Point {
-        if p.0 <= 655 { p } else { Point(p.0 - (p.0 - 655) * 2, p.1) }
+    let folded: HashSet<Point> = points.into_iter().map(|p| {
+        fold_point(p, Axis::x, 655)
     }).collect();
     println!("dr: {:?}", folded);
     println!("l: {:?}", folded.len());
 }
 
-//fn fold_point(p: Point) -> Option<usize> {
+enum Axis { x, y }
+fn get_from_point(p: Point, axis: Axis) -> usize {
+    match axis {
+        Axis::x => { p.0 }
+        Axis::y => { p.1 }
+    }
+}
+
+fn fold_point(p: Point, axis: Axis, val: usize) -> Point {
+    let pv = match axis {
+        Axis::x => { p.0 }
+        Axis::y => { p.1 }
+    };
+    if pv <= val { p } else {
+        let nv = pv - (pv - val) * 2;
+        match axis {
+            Axis::x => { Point(nv, p.1) }
+            Axis::y => { Point(p.0, nv) }
+        }
+    }
+}
+
 fn convert_match(m: Option<Match>) -> Option<usize> {
     return Some(m?.as_str().parse().ok()?);
 }
