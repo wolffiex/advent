@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use std::collections::HashMap;
+use std::collections::{HashSet, HashMap};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Copy)]
 struct Point {
@@ -15,35 +15,36 @@ fn main() {
 fn part1() -> Option<()> {
     println!("hi");
     let (bottom_right, map): (Point, HashMap<Point, usize>) = parse_input(get_input());
-    let mut bests: HashMap<Point, usize> = HashMap::new();
-    let mut paths = vec![vec![Point { x: 0, y: 0 }]];
+    let start_point = Point { x: 0, y: 0 };
+    let mut bests: HashMap<Point, usize> = HashMap::from([(start_point, 0)]);
+    let mut markers: HashSet::<Point> = HashSet::from([start_point]);
     let mut count = 0;
     loop {
-        if paths.is_empty() { break; }
-        count = count + 1;
-        if count % 100 == 0 { println!("loop: {}+", count / 100) };
-        let path = paths.pop()?;
-        let last = path.last()?;
-        let candidates: Vec<Point> = vec![(-1, 0), (0, -1), (1, 0), (0, 1)]
-            .into_iter()
-            .filter_map(|m| from_point(m, last))
-            .collect();
-
-        for p in candidates {
-            let maybe_risk = calc_risk(&path, p, &map);
-            if let Some(risk) = maybe_risk {
-                let is_better = match bests.get(&p) {
-                    None => true,
-                    Some(last_risk) => *last_risk > risk,
+        if markers.is_empty() { break; }
+        markers = markers.into_iter()
+            .map(|last_point| -> HashSet<Point>{
+                let last_risk = *bests.get(&last_point).unwrap();
+                count = count + 1;
+                if count % 100 == 0 {
+                    println!("loop: {}+ | {}", count / 100, bests.len())
                 };
-                if is_better {
-                    let mut candidate_path = path.clone();
-                    candidate_path.push(p);
-                    bests.insert(p, risk);
-                    paths.push(candidate_path);
-                }
-            };
-        }
+                vec![(-1, 0), (0, -1), (1, 0), (0, 1)]
+                    .into_iter()
+                    .filter_map(|d| -> Option<Point>{
+                        let p = from_point(d, &last_point)?;
+                        let risk = last_risk + map.get(&p)?;
+                        let is_at_least_as_good = match bests.get(&p) {
+                            None => true,
+                            Some(last_risk) => risk <= *last_risk,
+                        };
+                        return if is_at_least_as_good {
+                            bests.insert(p, risk);
+                            Some(p)
+                        } else {
+                            None
+                        };
+                    }).collect()
+            }).flatten().collect();
     }
     let b = bests.get(&bottom_right)?;
     println!("Best: {:?}", b);
@@ -73,12 +74,6 @@ fn from_point((dx, dy): (isize, isize), p: &Point) -> Option<Point> {
         x: safe_add(dx, p.x)?,
         y: safe_add(dy, p.y)?,
     })
-}
-
-fn calc_risk(path: &Vec<Point>, addendum: Point, map: &HashMap<Point, usize>) -> Option<usize> {
-    path[1..].into_iter()
-        .chain(std::iter::once(&addendum))
-        .fold(Some(0), |v, p| Some(v? + map.get(&p)?))
 }
 
 fn get_input() -> &'static str {
