@@ -9,12 +9,27 @@ struct Point {
 }
 
 fn main() {
-    part1().unwrap();
+    part2().unwrap();
 }
 
-fn part1() -> Option<()> {
+fn part2() -> Option<()> {
     println!("hi");
-    let (bottom_right, map): (Point, HashMap<Point, usize>) = parse_input(get_input());
+    let (bottom_right, omap): (Point, HashMap<Point, usize>) = parse_input(get_input());
+    let lookup_risk = |p: Point| -> Option<usize> {
+        let tile_x = p.x / bottom_right.x;
+        let tile_y = p.y / bottom_right.y;
+        return if tile_x < 5 || tile_y < 5 {
+            fn stupid_wrap(i: usize) -> usize {
+                if i > 9 { i - 9 } else { i }
+            }
+
+            let x = stupid_wrap(p.x % bottom_right.x + tile_x);
+            let y = stupid_wrap(p.y % bottom_right.y + tile_y);
+            Some(*omap.get(&Point { x, y })?)
+        } else {
+            None
+        };
+    };
     let start_point = Point { x: 0, y: 0 };
     let mut bests: HashMap<Point, usize> = HashMap::from([(start_point, 0)]);
     let mut markers: HashSet::<Point> = HashSet::from([start_point]);
@@ -32,7 +47,7 @@ fn part1() -> Option<()> {
                     .into_iter()
                     .filter_map(|d| -> Option<Point>{
                         let p = from_point(d, &last_point)?;
-                        let risk = last_risk + map.get(&p)?;
+                        let risk = last_risk + lookup_risk(p)?;
                         let is_at_least_as_good = match bests.get(&p) {
                             None => true,
                             Some(last_risk) => risk <= *last_risk,
@@ -46,7 +61,7 @@ fn part1() -> Option<()> {
                     }).collect()
             }).flatten().collect();
     }
-    let b = bests.get(&bottom_right)?;
+    let b = bests.get(&Point { x: bottom_right.x * 5 - 1, y: bottom_right.y * 5 - 1 })?;
     println!("Best: {:?}", b);
 
     Some(())
@@ -76,7 +91,7 @@ fn from_point((dx, dy): (isize, isize), p: &Point) -> Option<Point> {
     })
 }
 
-fn get_input() -> &'static str {
+fn xget_input() -> &'static str {
     return "4762999789865789979838469132535949928924821629179961723363249471951799931826691953949998875699647749
 2878689389148477519999123173439839916421859766789398177792745399987989799399369898869962879881857886
 4681844686577988929825996716999999595142263859539675899257971592875674325292821698696879525129998942
@@ -179,7 +194,7 @@ fn get_input() -> &'static str {
 4868743394828817989695434879853789734813996791799899976989432788899974859349893212796561349138949939";
 }
 
-fn xget_input() -> &'static str {
+fn get_input() -> &'static str {
     return "1163751742
 1381373672
 2136511328
