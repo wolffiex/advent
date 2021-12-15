@@ -15,11 +15,13 @@ fn main() {
 fn part1() -> Option<()> {
     println!("hi");
     let (bottom_right, map): (Point, HashMap<Point, usize>) = parse_input(get_input());
-    let mut bests: HashMap<Point, Vec<Point>> = HashMap::new();
+    let mut bests: HashMap<Point, usize> = HashMap::new();
     let mut paths = vec![vec![Point { x: 0, y: 0 }]];
+    let mut count = 0;
     loop {
         if paths.is_empty() { break; }
-        println!("slen: {}, {}", paths.len(), bests.len());
+        count = count + 1;
+        if count % 100 == 0 { println!("loop: {}+", count / 100) };
         let path = paths.pop()?;
         let last = path.last()?;
         let candidates: Vec<Point> = vec![(-1, 0), (0, -1), (1, 0), (0, 1)]
@@ -28,26 +30,23 @@ fn part1() -> Option<()> {
             .collect();
 
         for p in candidates {
-            let mut candidate_path = path.clone();
-            candidate_path.push(p);
-            let maybe_risk = calc_risk(&candidate_path, &map);
+            let maybe_risk = calc_risk(&path, p, &map);
             if let Some(risk) = maybe_risk {
                 let is_better = match bests.get(&p) {
                     None => true,
-                    Some(last_path) => {
-                        let last_risk = calc_risk(last_path, &map)?;
-                        last_risk > risk
-                    }
+                    Some(last_risk) => *last_risk > risk,
                 };
                 if is_better {
-                    bests.insert(p, candidate_path.clone());
-                    paths.push(candidate_path)
+                    let mut candidate_path = path.clone();
+                    candidate_path.push(p);
+                    bests.insert(p, risk);
+                    paths.push(candidate_path);
                 }
             };
         }
     }
-    let path = bests.get(&bottom_right)?;
-    println!("Best: {:?}", calc_risk(path, &map)?);
+    let b = bests.get(&bottom_right)?;
+    println!("Best: {:?}", b);
 
     Some(())
 }
@@ -76,8 +75,10 @@ fn from_point((dx, dy): (isize, isize), p: &Point) -> Option<Point> {
     })
 }
 
-fn calc_risk(path: &Vec<Point>, map: &HashMap<Point, usize>) -> Option<usize> {
-    path[1..].into_iter().fold( Some(0), |v, p| Some(v? + map.get(&p)?))
+fn calc_risk(path: &Vec<Point>, addendum: Point, map: &HashMap<Point, usize>) -> Option<usize> {
+    path[1..].into_iter()
+        .chain(std::iter::once(&addendum))
+        .fold(Some(0), |v, p| Some(v? + map.get(&p)?))
 }
 
 fn get_input() -> &'static str {
@@ -182,6 +183,7 @@ fn get_input() -> &'static str {
 9596899189247929998998329673792729789795579158889719596999369799667795378283669384147797179955895995
 4868743394828817989695434879853789734813996791799899976989432788899974859349893212796561349138949939";
 }
+
 fn xget_input() -> &'static str {
     return "1163751742
 1381373672
