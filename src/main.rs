@@ -24,35 +24,68 @@ fn part1() -> Option<()> {
     return Some(());
 }
 
+enum VisitState { Unvisited, DidLeft, DidRight }
+
 fn part2() -> Option<()> {
     let (initial, rule_map) = process_input(get_input())?;
-    let start: Vec<Pair> = vec! {Pair('C', 'H')};
-    let expand_pair = |pair: Pair| -> Vec<Pair> {
-        let c = rule_map.get(&pair).unwrap();
-        vec![Pair(pair.0, *c), Pair(*c, pair.1)]
-    };
-    let freq_map = count_pair(Pair('C', 'H'), 30, &rule_map);
-    Some(())
-}
 
-fn count_pair(pair: Pair, depth: usize, rule_map: &HashMap<Pair, char>) -> HashMap<char, usize> {
     let mut freq_map: HashMap<char, usize> = HashMap::new();
-    freq_map.insert(pair.0, 1);
-    let mut merge = |other_map: HashMap<char, usize>| {
-        for (c, n) in other_map {
-            *freq_map.entry(c).or_insert(n) += n;
+    let mut freq_count = |c: char| {
+        *freq_map.entry(c).or_insert(0) += 1;
+    };
+
+    let mut expand = |original_pair: Pair| {
+        let mut stack: Vec<(Pair, VisitState)> = vec![(original_pair, VisitState::Unvisited)];
+        let mut i: usize = 0;
+        loop {
+            if i %10000000 == 0 {
+                println!("l: {}", i);
+            }
+            i = i + 1;
+            if stack.is_empty(){ break; }
+            let is_max_depth = stack.len() >= 30;
+            let (pair, visit_state) = stack.pop().unwrap();
+            let e = *rule_map.get(&pair).unwrap();
+            match visit_state {
+                VisitState::Unvisited => {
+                    stack.push((pair, VisitState::DidLeft));
+                    if !is_max_depth {
+                        stack.push((Pair(pair.0, e), VisitState::Unvisited));
+                    }
+                }
+                VisitState::DidLeft => {
+                    //print!("{}", e);
+                    freq_count(e);
+                    stack.push((pair, VisitState::DidRight));
+                    if !is_max_depth {
+                        stack.push((Pair(e, pair.1), VisitState::Unvisited));
+                    }
+                }
+                VisitState::DidRight => {}
+            }
         }
     };
-    if depth > 0 {
-        let c = *rule_map.get(&pair).unwrap();
-        let left = Pair(pair.0, c);
-        let right = Pair(c, pair.1);
-        let next_depth = depth - 1;
-        merge(count_pair(left, next_depth, rule_map));
-        merge(count_pair(right, next_depth, rule_map));
-    }
 
-    return freq_map;
+    //println!("");
+    //println!("");
+    //print!("{}", initial.chars().next()?);
+    for i in 0..initial.len() - 1 {
+        let a = initial.chars().nth(i)?;
+        let b = initial.chars().nth(i + 1)?;
+        expand(Pair(a, b));
+        //print!("{}", b);
+    }
+    //println!("");
+    //println!("");
+
+    let mut kill_me = freq_map.clone();
+    for c in initial.chars() {
+        *kill_me.entry(c).or_insert(0) += 1;
+    }
+    for (c, v) in kill_me.into_iter() {
+        println!("{}:{}", c, v);
+    }
+    Some(())
 }
 
 fn count_chars(sequence: &str) -> HashMap<char, usize> {
