@@ -6,7 +6,7 @@ fn main() {
     part2().unwrap();
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Copy)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Copy)]
 struct Pair(char, char);
 
 fn part1() -> Option<()> {
@@ -26,39 +26,33 @@ fn part1() -> Option<()> {
 
 fn part2() -> Option<()> {
     let (initial, rule_map) = process_input(get_input())?;
-    let mut last_char = None;
-    let freqs: Vec<HashMap<char, usize>> = initial.chars().filter_map(
-        |c| -> Option<HashMap<char, usize>> {
-            let old_last = last_char;
-            last_char = Some(c);
-            match old_last {
-                None => None,
-                Some(last) => {
-                    let mut sequence = format!("{}{}", last, c);
-                    for s in 0..40 {
-                        println!("Step {}:{}", s, sequence.len());
-                        sequence = step(sequence, &rule_map);
-                        if sequence.len()> 20 {
-                            sequence = String::from(&sequence[0..20]);
-                        }
-                    }
-                    Some(count_chars(&sequence[1..]))
-                }
-            }
-        }).collect();
-    let mut counts: HashMap<char, usize> = HashMap::new();
-    for map in freqs {
-        for (c, n) in map {
-            *counts.entry(c).or_insert(n) += n;
+    let start: Vec<Pair> = vec! {Pair('C', 'H')};
+    let expand_pair = |pair: Pair| -> Vec<Pair> {
+        let c = rule_map.get(&pair).unwrap();
+        vec![Pair(pair.0, *c), Pair(*c, pair.1)]
+    };
+    let freq_map = count_pair(Pair('C', 'H'), 30, &rule_map);
+    Some(())
+}
+
+fn count_pair(pair: Pair, depth: usize, rule_map: &HashMap<Pair, char>) -> HashMap<char, usize> {
+    let mut freq_map: HashMap<char, usize> = HashMap::new();
+    freq_map.insert(pair.0, 1);
+    let mut merge = |other_map: HashMap<char, usize>| {
+        for (c, n) in other_map {
+            *freq_map.entry(c).or_insert(n) += n;
         }
+    };
+    if depth > 0 {
+        let c = *rule_map.get(&pair).unwrap();
+        let left = Pair(pair.0, c);
+        let right = Pair(c, pair.1);
+        let next_depth = depth - 1;
+        merge(count_pair(left, next_depth, rule_map));
+        merge(count_pair(right, next_depth, rule_map));
     }
 
-    let (max_k, max_v) = counts.iter().max_by_key(|&(_, v)| v)?;
-    let (min_k, min_v) = counts.iter().min_by_key(|&(_, v)| v)?;
-    println!("{}:{}", max_k, max_v);
-    println!("{}:{}", min_k, min_v);
-    println!("result:{}", max_v - min_v);
-    Some(())
+    return freq_map;
 }
 
 fn count_chars(sequence: &str) -> HashMap<char, usize> {
@@ -83,7 +77,6 @@ fn step(sequence: String, rules: &HashMap<Pair, char>) -> String {
         }
     }).collect();
 }
-
 
 fn process_input(input: &str) -> Option<(String, HashMap<Pair, char>)> {
     let (sequence, rules) = input.split_once("\n\n")?;
