@@ -16,16 +16,13 @@ fn part2() -> Option<()> {
     println!("hi");
     let (bottom_right, omap): (Point, HashMap<Point, usize>) = parse_input(get_input());
     let lookup_risk = |p: Point| -> Option<usize> {
-        let tile_x = p.x / bottom_right.x;
-        let tile_y = p.y / bottom_right.y;
-        return if tile_x < 5 || tile_y < 5 {
-            fn stupid_wrap(i: usize) -> usize {
-                if i > 9 { i - 9 } else { i }
-            }
-
-            let x = stupid_wrap(p.x % bottom_right.x + tile_x);
-            let y = stupid_wrap(p.y % bottom_right.y + tile_y);
-            Some(*omap.get(&Point { x, y })?)
+        let tl = Point { x: bottom_right.x + 1, y: bottom_right.y + 1 };
+        let tile_x = p.x / tl.x;
+        let tile_y = p.y / tl.y;
+        return if tile_x < 5 && tile_y < 5 {
+            let lookup = Point { x: p.x % tl.x, y: p.y % tl.y };
+            let x = tile_x + tile_y + *omap.get(&lookup).unwrap();
+            Some(if x > 9 { x - 9 } else { x })
         } else {
             None
         };
@@ -61,8 +58,13 @@ fn part2() -> Option<()> {
                     }).collect()
             }).flatten().collect();
     }
-    let b = bests.get(&Point { x: bottom_right.x * 5 - 1, y: bottom_right.y * 5 - 1 })?;
+    let b = bests.get(&Point { x: 4 + bottom_right.x * 5, y: 4 + bottom_right.y * 5})?;
     println!("Best: {:?}", b);
+    println!("");
+    println!("");
+    for x in 0..(1+bottom_right.x) * 5 {
+        print!("{}", lookup_risk(Point { x, y: 49 })?);
+    }
 
     Some(())
 }
