@@ -2,6 +2,8 @@
 
 
 fn main() {
+    println!("Expect 2021: {}", part2("D2FE28").unwrap());
+    println!("Expect ??: {}", part2("38006F45291200").unwrap());
     println!("Expect 3: {}", part2("C200B40A82").unwrap());
     println!("Expect 54: {}", part2("04005AC33890").unwrap());
     println!("Expect 7: {}", part2("880086C3E88112").unwrap());
@@ -10,11 +12,11 @@ fn main() {
     println!("Expect 0: {}", part2("F600BC2D8F").unwrap());
     println!("Expect 0: {}", part2("9C005AC2F8F0").unwrap());
     println!("Expect 1: {}", part2("9C0141080250320F1802104A08").unwrap());
+    println!("Expect Expect: {}", part2("A0016C880162017C3686B18A3D4780").unwrap());
     println!("ansser : {}", part2(get_input()).unwrap());
 }
 
-fn part2(input: &str) -> Option<u32> {
-    //let mut stream = BitStream::wrap("D2FE28");
+fn part2(input: &str) -> Option<u64> {
     let mut stream = BitStream::wrap(input);
     let (v, num_bytes) = read_packet(&mut stream);
 
@@ -23,23 +25,23 @@ fn part2(input: &str) -> Option<u32> {
     Some(v)
 }
 
-fn read_packet(stream: &mut BitStream) -> (u32, u32) {
+fn read_packet(stream: &mut BitStream) -> (u64, u64) {
     let (ver, type_id) = (stream.read(3), stream.read(3));
-    let mut total_bytes_read = 6;
+    let mut total_bytes_read: u64 = 6;
     return if type_id == 4 {
         let (x, bytes_read) = read_int(stream);
-        total_bytes_read = total_bytes_read + bytes_read;
+        total_bytes_read = total_bytes_read + bytes_read as u64;
         (x, total_bytes_read)
     } else {
-        let mut read_subpackets = || -> Vec<u32> {
+        let mut read_subpackets = || -> Vec<u64> {
             let length_type_id = stream.read(1);
-            total_bytes_read = total_bytes_read + 1;
-            let mut subpackets: Vec<u32> = Vec::new();
+            total_bytes_read +=1;
+            let mut subpackets: Vec<u64> = Vec::new();
             if length_type_id == 0 {
                 let sub_packet_bit_count = stream.read(15);
                 total_bytes_read += 15;
                 //println!("expect bits: {}", sub_packet_bit_count);
-                let mut sub_bytes_read = 0;
+                let mut sub_bytes_read: u64 = 0;
                 loop {
                     let (subvalue, bytes_read) = read_packet(stream);
                     subpackets.push(subvalue);
@@ -107,7 +109,7 @@ impl BitStream {
             m: 0b1000,
         }
     }
-    fn read(&mut self, num_bytes: u32) -> u32 {
+    fn read(&mut self, num_bytes: u32) -> u64 {
         let mut r = 0;
         if num_bytes > 32 { panic!("Oops"); }
         for i in 0..num_bytes {
@@ -126,7 +128,7 @@ impl BitStream {
     }
 }
 
-fn read_int(stream: &mut BitStream) -> (u32, u32) {
+fn read_int(stream: &mut BitStream) -> (u64, u32) {
     let mut x = 0;
     let mut byte_count = 0;
     loop {
