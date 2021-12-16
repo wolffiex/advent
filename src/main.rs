@@ -35,7 +35,7 @@ fn read_packet(stream: &mut BitStream) -> (u64, u64) {
     } else {
         let mut read_subpackets = || -> Vec<u64> {
             let length_type_id = stream.read(1);
-            total_bytes_read +=1;
+            total_bytes_read += 1;
             let mut subpackets: Vec<u64> = Vec::new();
             if length_type_id == 0 {
                 let sub_packet_bit_count = stream.read(15);
@@ -74,19 +74,16 @@ fn read_packet(stream: &mut BitStream) -> (u64, u64) {
             t if t == 1 => values.into_iter().product(),
             t if t == 2 => values.into_iter().min().unwrap(),
             t if t == 3 => values.into_iter().max().unwrap(),
-            t if t == 5 || t == 6 => {
-                let is_gt = t == 5;
-                if values.get(0).unwrap() > values.get(1).unwrap() {
-                    if is_gt { 1 } else { 0 }
-                } else {
-                    if is_gt { 0 } else { 1 }
-                }
-            }
-            t if t == 7 => {
-                if values.get(0).unwrap() == values.get(1).unwrap() { 1 } else { 0 }
-            }
-            _ => {
-                panic!("Unimplemented");
+            t => {
+                let (a, b) = (values.get(0).unwrap(), values.get(1).unwrap());
+                let is_one = match t {
+                    t if t == 5 => a > b,
+                    t if t == 6 => a < b,
+                    t if t == 7 => a == b,
+                    _ => panic!("Unimplemented"),
+                };
+
+                if is_one { 1 } else { 0 }
             }
         };
         (value, total_bytes_read)
