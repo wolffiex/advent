@@ -13,7 +13,6 @@ fn main() {
 }
 
 fn part2() -> Option<()> {
-    println!("hi");
     let (bottom_right, omap): (Point, HashMap<Point, usize>) = parse_input(get_input());
     let lookup_risk = |p: Point| -> Option<usize> {
         let tl = Point { x: bottom_right.x + 1, y: bottom_right.y + 1 };
@@ -37,8 +36,8 @@ fn part2() -> Option<()> {
             .map(|last_point| -> HashSet<Point>{
                 let last_risk = *bests.get(&last_point).unwrap();
                 count = count + 1;
-                if count % 100 == 0 {
-                    println!("loop: {}+ | {}", count / 100, bests.len())
+                if count % 1000 == 0 {
+                    //println!("loop: {}+ | {}", count / 1000, bests.len())
                 };
                 vec![(-1, 0), (0, -1), (1, 0), (0, 1)]
                     .into_iter()
@@ -47,7 +46,7 @@ fn part2() -> Option<()> {
                         let risk = last_risk + lookup_risk(p)?;
                         let is_at_least_as_good = match bests.get(&p) {
                             None => true,
-                            Some(last_risk) => risk <= *last_risk,
+                            Some(last_risk) => risk < *last_risk,
                         };
                         return if is_at_least_as_good {
                             bests.insert(p, risk);
@@ -60,11 +59,6 @@ fn part2() -> Option<()> {
     }
     let b = bests.get(&Point { x: 4 + bottom_right.x * 5, y: 4 + bottom_right.y * 5})?;
     println!("Best: {:?}", b);
-    println!("");
-    println!("");
-    for x in 0..(1+bottom_right.x) * 5 {
-        print!("{}", lookup_risk(Point { x, y: 49 })?);
-    }
 
     Some(())
 }
@@ -93,7 +87,7 @@ fn from_point((dx, dy): (isize, isize), p: &Point) -> Option<Point> {
     })
 }
 
-fn xget_input() -> &'static str {
+fn get_input() -> &'static str {
     return "4762999789865789979838469132535949928924821629179961723363249471951799931826691953949998875699647749
 2878689389148477519999123173439839916421859766789398177792745399987989799399369898869962879881857886
 4681844686577988929825996716999999595142263859539675899257971592875674325292821698696879525129998942
@@ -196,7 +190,7 @@ fn xget_input() -> &'static str {
 4868743394828817989695434879853789734813996791799899976989432788899974859349893212796561349138949939";
 }
 
-fn get_input() -> &'static str {
+fn xget_input() -> &'static str {
     return "1163751742
 1381373672
 2136511328
