@@ -57,7 +57,7 @@ fn explode(starting: &Vec<Elem>) -> Option<Vec<Elem>> {
             let (left, right): (Elem, Elem) = (*starting.get(p)?, *starting.get(p + 1)?);
             let mut did_left = false;
             let foo:Vec<Elem> = starting.into_iter().take(p).rev().map(|e| *e).collect();
-            let head: Vec<Elem> = starting.into_iter().take(p - 1).rev().map(|e| -> Elem {
+            let mut head: Vec<Elem> = starting.into_iter().take(p - 1).rev().map(|e| -> Elem {
                 if let Num(_) = e {
                     if !did_left {
                         did_left = true;
@@ -66,6 +66,7 @@ fn explode(starting: &Vec<Elem>) -> Option<Vec<Elem>> {
                 }
                 *e
             }).collect();
+            head.reverse();
 
             let mut did_right = false;
             let tail: Vec<Elem> = starting.into_iter().skip(p + 3).map(|p| -> Elem {
@@ -110,10 +111,15 @@ fn test_explode2() {
 }
 
 #[test]
-fn test_rev() {
-    let x: Vec<usize> = vec![1, 2, 3, 4, 5];
-    let y: Vec<usize> = x.into_iter().skip(1).take(3).rev().map(|n| n+1 ).collect();
-    println!("{:?}", y);
+fn test_explode3() {
+    assert!(equiv(explode(&parse_number("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]")).unwrap(),
+                  parse_number("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]")));
+
+    assert!(equiv(explode(&parse_number("[[6,[5,[4,[3,2]]]],1]")).unwrap(),
+                  parse_number("[[6,[5,[7,0]]],3]")));
+
+    assert!(equiv(explode(&parse_number("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]")).unwrap(),
+                  parse_number("[[3,[2,[8,0]]],[9,[5,[7,0]]]]")));
 }
 
 #[test]
