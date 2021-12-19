@@ -2,8 +2,6 @@
 
 use std::slice;
 
-#[cfg(test)]
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Copy)]
 pub enum Elem {
     Open,
@@ -15,6 +13,7 @@ use crate::Elem::*;
 
 fn main() {
     part1().unwrap();
+    part2().unwrap();
 }
 
 fn part1() -> Option<()> {
@@ -23,6 +22,10 @@ fn part1() -> Option<()> {
     Some(())
 }
 
+fn part2() -> Option<()> {
+    println!("Max magnitude: {}", find_largest_sum(get_input()));
+    Some(())
+}
 fn parse_number(s: &str) -> Vec<Elem> {
     s.chars().filter_map(|c: char| -> Option<Elem> {
         match c {
@@ -39,7 +42,6 @@ fn parse_number(s: &str) -> Vec<Elem> {
         }
     }).collect()
 }
-
 
 fn split(starting: &Vec<Elem>) -> Option<Vec<Elem>> {
     let mut did_one = false;
@@ -73,6 +75,37 @@ fn add(a: &Vec<Elem>, b: &Vec<Elem>) -> Vec<Elem> {
         }
     }
     result
+}
+
+
+#[cfg(test)]
+#[test]
+fn test_largest() {
+    let input = "[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]
+[[[5,[2,8]],4],[5,[[9,9],0]]]
+[6,[[[6,2],[5,6]],[[7,6],[4,7]]]]
+[[[6,[0,7]],[0,9]],[4,[9,[9,0]]]]
+[[[7,[6,4]],[3,[1,3]]],[[[5,5],1],9]]
+[[6,[[7,3],[3,2]]],[[[3,8],[5,7]],4]]
+[[[[5,4],[7,7]],8],[[8,3],8]]
+[[9,3],[[9,9],[6,[4,9]]]]
+[[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]]
+[[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]";
+    let max_mag = find_largest_sum(input);
+    assert_eq!(max_mag, 3993);
+}
+
+fn find_largest_sum(input: &str) -> usize {
+    let mut max_mag: usize = usize::MIN;
+    for line1 in input.lines() {
+        for line2 in input.lines() {
+            if line1.eq(line2) { continue; }
+            let a = parse_number(line1);
+            let b = parse_number(line2);
+            max_mag = max_mag.max(magnitude(add(&a, &b)));
+        }
+    }
+    max_mag
 }
 
 #[test]
